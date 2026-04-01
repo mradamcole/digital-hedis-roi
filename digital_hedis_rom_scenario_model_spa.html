@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital HEDIS ROM Scenario Modeller</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #182244;
+      --border: #2a3768;
+      --text: #edf2ff;
+      --muted: #b7c2e3;
+      --accent: #7cc4ff;
+      --accent-2: #8ef0c2;
+      --warn: #ffd166;
+      --danger: #ff8fa3;
+      --shadow: 0 14px 40px rgba(0,0,0,0.25);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #09101f 0%, #0b1020 100%);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .container {
+      width: min(1440px, calc(100% - 32px));
+      margin: 24px auto 48px;
+    }
+    .hero, .panel, .bucket-card, .summary-card, details {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 28px;
+      margin-bottom: 18px;
+      background:
+        radial-gradient(circle at top right, rgba(124,196,255,0.18), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(142,240,194,0.12), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+    }
+    h1, h2, h3 {
+      margin: 0 0 10px;
+      line-height: 1.15;
+    }
+    h1 { font-size: clamp(28px, 3.5vw, 42px); }
+    h2 { font-size: 22px; }
+    h3 { font-size: 18px; }
+    p, li, summary, label, .small { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 1080px) {
+      .grid { grid-template-columns: 1fr; }
+      .sticky { position: static !important; top: auto !important; }
+    }
+    .panel { padding: 18px; }
+    .sticky {
+      position: sticky;
+      top: 18px;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .subgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 680px) {
+      .subgrid { grid-template-columns: 1fr; }
+    }
+    .input-row {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .input-row.inline {
+      grid-template-columns: 1fr 140px;
+      align-items: center;
+    }
+    input[type="number"], input[type="text"], select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #38508e;
+      background: rgba(10, 15, 35, 0.85);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .muted { color: var(--muted); }
+    .tiny { font-size: 12px; color: #96a4cb; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(124,196,255,0.35);
+      color: #dff1ff;
+      background: rgba(124,196,255,0.12);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .summary-card {
+      container-type: inline-size;
+      min-width: 0;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(124,196,255,0.08), rgba(255,255,255,0.01));
+    }
+    .value {
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.02em;
+    }
+    .value.smallish { font-size: 22px; }
+    /* Sidebar cards are narrow (~2 per 380px column); scale figures to container so long currency fits */
+    .summary-card .value {
+      font-size: clamp(14px, 2.4vw, 18px);
+      font-size: clamp(11px, 7.5cqi, 18px);
+      line-height: 1.2;
+    }
+    .summary-card .value.smallish {
+      font-size: clamp(13px, 2.2vw, 17px);
+      font-size: clamp(10px, 7cqi, 17px);
+    }
+    .summary-metric {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .bar {
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .bar > span {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 50%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+    .bucket-list {
+      display: grid;
+      gap: 14px;
+    }
+    .bucket-card {
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+    }
+    .bucket-top {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 820px) {
+      .bucket-top { grid-template-columns: 1fr; }
+    }
+    .bucket-values {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 10px;
+      margin: 12px 0 10px;
+    }
+    .kv {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .kv .label { font-size: 12px; color: #96a4cb; margin-bottom: 6px; }
+    .kv .num { font-size: 20px; font-weight: 800; }
+    .formula {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #d7e1ff;
+      font-size: 13px;
+      background: rgba(9,16,31,0.7);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 12px;
+      border-radius: 14px;
+      overflow-x: auto;
+    }
+    .slider-row {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #96a4cb;
+      margin-top: 4px;
+    }
+    .selected-chip {
+      font-weight: 700;
+      border: 1px solid rgba(142,240,194,0.35);
+      background: rgba(142,240,194,0.1);
+      color: #d8ffe9;
+      border-radius: 12px;
+      text-align: center;
+      padding: 10px 8px;
+      min-width: 0;
+    }
+    details {
+      padding: 14px 16px;
+      margin-top: 14px;
+      background: rgba(255,255,255,0.02);
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--text);
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .details-body { margin-top: 12px; }
+    .assumption-list {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      appearance: none;
+      border: 1px solid rgba(124,196,255,0.35);
+      background: rgba(124,196,255,0.12);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button.secondary {
+      border-color: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+    }
+    .footer-note {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #94a2cc;
+    }
+    .right-note {
+      text-align: right;
+      font-size: 12px;
+      color: #96a4cb;
+    }
+    .master-card {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.03);
+    }
+    .master-grid {
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 14px;
+      align-items: center;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="pill">Digital HEDIS ROM scenario modeller</div>
+      <h1>Interactive SPA for payer benefit modelling</h1>
+      <p>
+        This single-page model lets you change the key unknowns, see the bucket-level ROM update, and then choose a point between the low and high ROM for each bucket.
+        The master dial can push all bucket sliders together when you want a quick conservative-to-aggressive view.
+      </p>
+      <div class="tag-row">
+        <span class="pill">Editable assumptions</span>
+        <span class="pill">Low / high slider per bucket</span>
+        <span class="pill">Master dial</span>
+        <span class="pill">Gross vs overlap-adjusted net ROM</span>
+      </div>
+    </section>
+
+    <div class="grid">
+      <aside class="sticky">
+        <section class="panel">
+          <div class="section-title">
+            <h2>Summary</h2>
+            <span class="pill">Annualized</span>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="small">Selected gross ROM</div>
+              <div id="grossSelected" class="value">$0</div>
+              <div class="summary-metric"><span>Low gross</span><strong id="grossLow">$0</strong></div>
+              <div class="summary-metric"><span>High gross</span><strong id="grossHigh">$0</strong></div>
+            </div>
+            <div class="summary-card">
+              <div class="small">Selected net ROM</div>
+              <div id="netSelected" class="value">$0</div>
+              <div class="summary-metric"><span>Overlap haircut</span><strong id="overlapPct">0%</strong></div>
+              <div class="summary-metric"><span>Net / member / year</span><strong id="netPMPY">$0</strong></div>
+            </div>
+            <div class="summary-card">
+              <div class="small">Annual medical spend</div>
+              <div id="annualSpend" class="value smallish">$0</div>
+              <div class="summary-metric"><span>Total members</span><strong id="totalMembers">0</strong></div>
+              <div class="summary-metric"><span>MA members</span><strong id="maMembersSummary">0</strong></div>
+            </div>
+            <div class="summary-card">
+              <div class="small">Base model gross ROM</div>
+              <div id="baseGross" class="value smallish">$0</div>
+              <div class="summary-metric"><span>Base model net</span><strong id="baseNet">$0</strong></div>
+              <div class="summary-metric"><span>Master dial</span><strong id="masterPctLabel">0%</strong></div>
+            </div>
+          </div>
+
+          <div class="master-card">
+            <h3>Master dial</h3>
+            <p class="tiny">Moving this overwrites all 8 bucket sliders. Lower values lean conservative; higher values lean aggressive.</p>
+            <div class="master-grid">
+              <div>
+                <input id="masterDial" type="range" min="0" max="100" step="1" />
+                <div class="slider-labels"><span>Conservative</span><span>Aggressive</span></div>
+              </div>
+              <div id="masterDialValue" class="selected-chip">0%</div>
+            </div>
+          </div>
+
+          <details open>
+            <summary>Assumptions used in this model</summary>
+            <div class="details-body">
+              <ul class="assumption-list">
+                <li>The model is annual recurring benefit in steady state, not implementation cost.</li>
+                <li>All dollar outputs are ROM estimates intended for planning, not actuarial certification.</li>
+                <li>Some buckets are hard-dollar savings, some are revenue/risk protection, and some are soft-dollar / redeployment unless you remove expense from the budget.</li>
+                <li>Overlap haircut is applied after the bucket roll-up to reduce double counting.</li>
+                <li>Low / high ranges are anchored to the ROM ranges from the earlier estimate and scale with your revised base assumptions.</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="toolbar">
+            <button id="resetDefaults">Reset defaults</button>
+            <button id="exportJson" class="secondary">Export assumptions JSON</button>
+            <button id="downloadHtml" class="secondary">Download this HTML</button>
+          </div>
+
+          <div class="footer-note">
+            Tip: start by editing the inputs below, then fine-tune the 8 bucket sliders or use the master dial.
+          </div>
+        </section>
+      </aside>
+
+      <main>
+        <section class="panel">
+          <div class="section-title">
+            <h2>Editable inputs</h2>
+            <span class="small">These assumptions drive the base ROM before the low/high slider overlay.</span>
+          </div>
+
+          <details open>
+            <summary>1) Membership mix and medical spend</summary>
+            <div class="details-body subgrid">
+              <div>
+                <div class="input-row inline"><label for="commercialMembers">Commercial / Exchange members</label><input id="commercialMembers" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="medicaidMembers">Medicaid members</label><input id="medicaidMembers" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="maMembers">Medicare Advantage members</label><input id="maMembers" type="number" min="0" step="1000" /></div>
+              </div>
+              <div>
+                <div class="input-row inline"><label for="commercialPMPM">Commercial / Exchange medical PMPM ($)</label><input id="commercialPMPM" type="number" min="0" step="1" /></div>
+                <div class="input-row inline"><label for="medicaidPMPM">Medicaid medical PMPM ($)</label><input id="medicaidPMPM" type="number" min="0" step="1" /></div>
+                <div class="input-row inline"><label for="maPMPM">Medicare Advantage medical PMPM ($)</label><input id="maPMPM" type="number" min="0" step="1" /></div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>2) HEDIS operating baseline and reporting-cost takeout assumptions</summary>
+            <div class="details-body subgrid">
+              <div>
+                <div class="input-row inline"><label for="chartChaseSpend">Outsourced chart chase / abstraction spend ($)</label><input id="chartChaseSpend" type="number" min="0" step="50000" /></div>
+                <div class="input-row inline"><label for="internalHedisOpsSpend">Internal HEDIS ops / QA / reconciliation spend ($)</label><input id="internalHedisOpsSpend" type="number" min="0" step="50000" /></div>
+                <div class="input-row inline"><label for="vendorAuditSpend">Vendor / audit / submission support spend ($)</label><input id="vendorAuditSpend" type="number" min="0" step="50000" /></div>
+              </div>
+              <div>
+                <div class="input-row inline"><label for="hedisOpsReductionPct">Reducible share of HEDIS operating spend (%)</label><input id="hedisOpsReductionPct" type="number" min="0" max="100" step="1" /></div>
+                <p class="tiny">The base reporting-cost takeout bucket equals the three spend lines above multiplied by the reducible share.</p>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>3) Quality program economics and Stars sensitivity</summary>
+            <div class="details-body subgrid">
+              <div>
+                <div class="input-row inline"><label for="nonMAQualityMembers">Members tied to non-MA quality economics</label><input id="nonMAQualityMembers" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="nonMAQualityPMPY">Average non-MA quality economics ($ PMPY)</label><input id="nonMAQualityPMPY" type="number" min="0" step="1" /></div>
+                <div class="input-row inline"><label for="captureRecoveryPct">Recovered value from better capture / fuller measurement (%)</label><input id="captureRecoveryPct" type="number" min="0" max="100" step="0.1" /></div>
+              </div>
+              <div>
+                <div class="input-row inline"><label for="starBonusPerMember">MA Stars bonus economics ($ per MA member / year)</label><input id="starBonusPerMember" type="number" min="0" step="1" /></div>
+                <div class="input-row inline"><label for="starAttributionPct">Digital HEDIS attribution to Stars value (%)</label><input id="starAttributionPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="starSensitivityPct">MA Stars sensitivity / threshold capture factor (%)</label><input id="starSensitivityPct" type="number" min="0" max="100" step="0.1" /></div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>4) In-year gap closure, outreach, and provider-abrasion assumptions</summary>
+            <div class="details-body subgrid">
+              <div>
+                <div class="input-row inline"><label for="providerQualityFTE">Provider-facing quality / network ops FTE</label><input id="providerQualityFTE" type="number" min="0" step="0.5" /></div>
+                <div class="input-row inline"><label for="providerFTECost">Loaded cost per provider-facing FTE ($)</label><input id="providerFTECost" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="providerEffortReduciblePct">Reducible provider-facing effort (%)</label><input id="providerEffortReduciblePct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="providerOtherSavings">Other provider-data / remediation savings ($)</label><input id="providerOtherSavings" type="number" min="0" step="50000" /></div>
+              </div>
+              <div>
+                <div class="input-row inline"><label for="gapClosureMembers">Members in in-year gap-closure programs</label><input id="gapClosureMembers" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="gapClosurePMPY">Average in-year quality upside ($ PMPY)</label><input id="gapClosurePMPY" type="number" min="0" step="1" /></div>
+                <div class="input-row inline"><label for="earlierActionRealizationPct">Incremental realization from earlier action (%)</label><input id="earlierActionRealizationPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="outreachEvents">Annual outreach attempts</label><input id="outreachEvents" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="outreachCost">Average cost per outreach attempt ($)</label><input id="outreachCost" type="number" min="0" step="0.1" /></div>
+                <div class="input-row inline"><label for="wastedOutreachReductionPct">Reduction in wasted outreach (%)</label><input id="wastedOutreachReductionPct" type="number" min="0" max="100" step="0.1" /></div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>5) Reuse, VBC operations, and settlement friction assumptions</summary>
+            <div class="details-body subgrid">
+              <div>
+                <div class="input-row inline"><label for="overlapToolSpend">Avoidable overlapping point-solution / tool spend ($)</label><input id="overlapToolSpend" type="number" min="0" step="50000" /></div>
+                <div class="input-row inline"><label for="duplicateAnalystFTE">Duplicate analyst FTE avoided</label><input id="duplicateAnalystFTE" type="number" min="0" step="0.5" /></div>
+                <div class="input-row inline"><label for="analystFTECost">Loaded cost per analyst FTE ($)</label><input id="analystFTECost" type="number" min="0" step="1000" /></div>
+              </div>
+              <div>
+                <div class="input-row inline"><label for="vbcOpsFTE">VBC / contract / quality operations FTE</label><input id="vbcOpsFTE" type="number" min="0" step="0.5" /></div>
+                <div class="input-row inline"><label for="vbcFTECost">Loaded cost per VBC ops FTE ($)</label><input id="vbcFTECost" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="vbcEffortReduciblePct">Reducible VBC ops effort (%)</label><input id="vbcEffortReduciblePct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="settlementLeakageSavings">Reduced settlement leakage / dispute / retro adjustment cost ($)</label><input id="settlementLeakageSavings" type="number" min="0" step="50000" /></div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>6) Medical-cost savings decomposition and overlap haircut</summary>
+            <div class="details-body subgrid">
+              <div>
+                <div class="input-row inline"><label for="utilizationTrendPct">Annual medical trend under management (%)</label><input id="utilizationTrendPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="addressableSpendPct">Share of spend where targeted quality action can matter (%)</label><input id="addressableSpendPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="relativeReductionPct">Relative reduction on that addressable spend (%)</label><input id="relativeReductionPct" type="number" min="0" max="100" step="0.1" /></div>
+              </div>
+              <div>
+                <div class="input-row inline"><label for="overlapHaircutPctInput">Overlap haircut on gross total (%)</label><input id="overlapHaircutPctInput" type="number" min="0" max="100" step="0.1" /></div>
+                <p class="tiny">Bucket 8 uses: annual medical spend × utilization trend × addressable share × relative reduction. The overlap haircut is then applied to the total gross selected ROM.</p>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="panel" style="margin-top: 18px;">
+          <div class="section-title">
+            <h2>Bucket-by-bucket ROM tuning</h2>
+            <span class="small">Low / selected / high ranges scale automatically when you change the assumptions above.</span>
+          </div>
+          <div id="bucketList" class="bucket-list"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+    const oneDec = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+    const defaults = {
+      commercialMembers: 600000,
+      medicaidMembers: 250000,
+      maMembers: 150000,
+      commercialPMPM: 550,
+      medicaidPMPM: 500,
+      maPMPM: 1100,
+
+      chartChaseSpend: 1200000,
+      internalHedisOpsSpend: 1800000,
+      vendorAuditSpend: 2000000,
+      hedisOpsReductionPct: 70,
+
+      providerQualityFTE: 10.5,
+      providerFTECost: 140000,
+      providerEffortReduciblePct: 50,
+      providerOtherSavings: 250000,
+
+      nonMAQualityMembers: 400000,
+      nonMAQualityPMPY: 40,
+      captureRecoveryPct: 5,
+
+      starBonusPerMember: 372,
+      starAttributionPct: 15,
+      starSensitivityPct: 100,
+
+      gapClosureMembers: 300000,
+      gapClosurePMPY: 25,
+      earlierActionRealizationPct: 15,
+      outreachEvents: 500000,
+      outreachCost: 8,
+      wastedOutreachReductionPct: 10,
+
+      overlapToolSpend: 2500000,
+      duplicateAnalystFTE: 4,
+      analystFTECost: 125000,
+
+      vbcOpsFTE: 8,
+      vbcFTECost: 150000,
+      vbcEffortReduciblePct: 75,
+      settlementLeakageSavings: 600000,
+
+      utilizationTrendPct: 8,
+      addressableSpendPct: 25,
+      relativeReductionPct: 7.5,
+
+      overlapHaircutPctInput: 16
+    };
+
+    const bucketConfigs = [
+      {
+        id: 'b1',
+        name: '1. HEDIS reporting operating-cost takeout',
+        desc: 'Direct reporting-operations savings from less chart chase, abstraction, reconciliation, and submission support.',
+        lowMult: 2.0/3.5,
+        highMult: 6.0/3.5,
+        formulaText: 'Base = (chart chase + internal HEDIS ops + vendor/audit spend) × reducible share',
+        calc: s => (s.chartChaseSpend + s.internalHedisOpsSpend + s.vendorAuditSpend) * pct(s.hedisOpsReductionPct),
+        assumptions: [
+          'A payer with stronger digital operations can remove or redeploy part of the traditional HEDIS operating stack.',
+          'The reducible share is editable because some organizations will choose to redeploy staff rather than remove cost.'
+        ]
+      },
+      {
+        id: 'b2',
+        name: '2. Provider-abrasion / provider-ops savings',
+        desc: 'Payer-side savings from less provider follow-up, fewer ad hoc files, and less remediation work.',
+        lowMult: 0.5,
+        highMult: 2.0,
+        formulaText: 'Base = provider-facing FTE × loaded cost × reducible effort + other provider-data savings',
+        calc: s => (s.providerQualityFTE * s.providerFTECost * pct(s.providerEffortReduciblePct)) + s.providerOtherSavings,
+        assumptions: [
+          'This is payer-side provider-ops efficiency, not provider-side labor savings.',
+          'Other provider-data savings can include escalations, data cleanup, and remediation overhead.'
+        ]
+      },
+      {
+        id: 'b3',
+        name: '3. Better measured performance from fuller capture',
+        desc: 'Value of counting care that already happened but was previously incompletely captured or inconsistently reported.',
+        lowMult: 0.3/0.8,
+        highMult: 2.0/0.8,
+        formulaText: 'Base = non-MA quality-linked members × PMPY economics × recovered value from better capture',
+        calc: s => s.nonMAQualityMembers * s.nonMAQualityPMPY * pct(s.captureRecoveryPct),
+        assumptions: [
+          'Use this for Medicaid/commercial/state or employer quality economics outside MA Stars.',
+          'This bucket reflects better capture/completeness, not clinical improvement.'
+        ]
+      },
+      {
+        id: 'b4',
+        name: '4. Ratings / bonus / revenue protection',
+        desc: 'MA Stars-related economic value preserved or improved through better HEDIS completeness, timeliness, and execution.',
+        lowMult: 3.0/8.4,
+        highMult: 15.0/8.4,
+        formulaText: 'Base = MA members × bonus economics × digital HEDIS attribution × Stars sensitivity factor',
+        calc: s => s.maMembers * s.starBonusPerMember * pct(s.starAttributionPct) * pct(s.starSensitivityPct),
+        assumptions: [
+          'Stars sensitivity reflects how close the book is to thresholds/cliffs and how much value is actually at risk.',
+          'Attribution isolates the share of Stars economics you want to assign to digital HEDIS rather than all other quality capabilities.'
+        ]
+      },
+      {
+        id: 'b5',
+        name: '5. Better in-year gap closure operations',
+        desc: 'Earlier and cleaner gap lists, more targeted outreach, and less wasted intervention effort.',
+        lowMult: 0.5/1.5,
+        highMult: 4.0/1.5,
+        formulaText: 'Base = (members × PMPY upside × earlier-action realization) + (outreach volume × outreach cost × wasted-touch reduction)',
+        calc: s => (s.gapClosureMembers * s.gapClosurePMPY * pct(s.earlierActionRealizationPct)) + (s.outreachEvents * s.outreachCost * pct(s.wastedOutreachReductionPct)),
+        assumptions: [
+          'The first term captures better program economics from acting sooner; the second captures less wasted outreach.',
+          'Keep this separate from Bucket 3: Bucket 3 is better counting; Bucket 5 is better action.'
+        ]
+      },
+      {
+        id: 'b6',
+        name: '6. Reuse across adjacent functions',
+        desc: 'Savings and rationalization from reusing the same clinical-quality data foundation across adjacent functions.',
+        lowMult: 0.5,
+        highMult: 2.0,
+        formulaText: 'Base = avoidable overlapping tool spend + duplicate analyst FTE × loaded cost',
+        calc: s => s.overlapToolSpend + (s.duplicateAnalystFTE * s.analystFTECost),
+        assumptions: [
+          'Typical examples include quality analytics, gap management, reporting support, and manual reconciliation tooling.',
+          'This bucket often becomes soft-dollar unless you actively retire tools or remove duplicate effort.'
+        ]
+      },
+      {
+        id: 'b7',
+        name: '7. Value-based care / contract settlement efficiency',
+        desc: 'Less contract reconciliation effort, fewer disputes, and lower quality-settlement leakage.',
+        lowMult: 0.5/1.5,
+        highMult: 3.0/1.5,
+        formulaText: 'Base = VBC ops FTE × loaded cost × reducible effort + reduced leakage/dispute cost',
+        calc: s => (s.vbcOpsFTE * s.vbcFTECost * pct(s.vbcEffortReduciblePct)) + s.settlementLeakageSavings,
+        assumptions: [
+          'Use this to reflect payer-side VBC operations and settlement friction, not provider-side workflow benefits.',
+          'Reduced leakage can include disputes, retro adjustments, and reconciliation cleanup.'
+        ]
+      },
+      {
+        id: 'b8',
+        name: '8. Downstream medical-cost savings',
+        desc: 'Longer-run medical cost improvement from earlier and more targeted quality interventions.',
+        lowMult: 4.0/11.2,
+        highMult: 20.0/11.2,
+        formulaText: 'Base = annual medical spend × utilization trend × addressable spend share × relative reduction on addressable spend',
+        calc: s => annualMedicalSpend(s) * pct(s.utilizationTrendPct) * pct(s.addressableSpendPct) * pct(s.relativeReductionPct),
+        assumptions: [
+          'This is the most uncertain bucket; keep it conservative unless you have payer-specific evidence.',
+          'The three inputs decompose the earlier 0.15% of annual spend assumption into a more inspectable set of levers.'
+        ]
+      }
+    ];
+
+    function pct(n) { return Number(n || 0) / 100; }
+    function num(id) { return Number(document.getElementById(id).value || 0); }
+    function annualMedicalSpend(s) {
+      return (s.commercialMembers * s.commercialPMPM * 12) +
+             (s.medicaidMembers * s.medicaidPMPM * 12) +
+             (s.maMembers * s.maPMPM * 12);
+    }
+
+    function getState() {
+      const state = {};
+      for (const key of Object.keys(defaults)) state[key] = num(key);
+      return state;
+    }
+
+    function formatMoney(n) { return currency.format(n || 0); }
+    function formatPct(n) { return `${oneDec.format(n || 0)}%`; }
+
+    function defaultSliderPercent(cfg) {
+      const basePos = (1 - cfg.lowMult) / (cfg.highMult - cfg.lowMult);
+      return Math.max(0, Math.min(100, Math.round(basePos * 100)));
+    }
+
+    function buildBucketCards() {
+      const list = document.getElementById('bucketList');
+      list.innerHTML = '';
+      for (const cfg of bucketConfigs) {
+        const card = document.createElement('article');
+        card.className = 'bucket-card';
+        card.innerHTML = `
+          <div class="bucket-top">
+            <div>
+              <h3>${cfg.name}</h3>
+              <p>${cfg.desc}</p>
+              <div class="formula">${cfg.formulaText}</div>
+              <details>
+                <summary>Why this bucket exists and what it assumes</summary>
+                <div class="details-body">
+                  <ul class="assumption-list">
+                    ${cfg.assumptions.map(a => `<li>${a}</li>`).join('')}
+                  </ul>
+                </div>
+              </details>
+            </div>
+            <div>
+              <div class="bucket-values">
+                <div class="kv"><div class="label">Low ROM</div><div class="num" id="${cfg.id}_low">$0</div></div>
+                <div class="kv"><div class="label">Selected ROM</div><div class="num" id="${cfg.id}_sel">$0</div></div>
+                <div class="kv"><div class="label">High ROM</div><div class="num" id="${cfg.id}_high">$0</div></div>
+              </div>
+              <div class="slider-row">
+                <div>
+                  <input id="${cfg.id}_slider" type="range" min="0" max="100" step="1" value="${defaultSliderPercent(cfg)}" />
+                  <div class="slider-labels"><span>Low</span><span>High</span></div>
+                </div>
+                <div id="${cfg.id}_sliderLabel" class="selected-chip">${defaultSliderPercent(cfg)}%</div>
+              </div>
+              <div class="bar"><span id="${cfg.id}_bar"></span></div>
+              <div class="right-note">Base model sits at <span id="${cfg.id}_basePos"></span> of this bucket’s ROM range.</div>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      }
+    }
+
+    function recalc() {
+      const s = getState();
+      const spend = annualMedicalSpend(s);
+      const totalMembers = s.commercialMembers + s.medicaidMembers + s.maMembers;
+
+      let grossLow = 0, grossHigh = 0, grossSelected = 0, baseGross = 0;
+
+      for (const cfg of bucketConfigs) {
+        const base = cfg.calc(s);
+        const low = base * cfg.lowMult;
+        const high = base * cfg.highMult;
+        const slider = document.getElementById(`${cfg.id}_slider`);
+        const sliderPct = Number(slider.value || 0) / 100;
+        const selected = low + (high - low) * sliderPct;
+        const basePos = ((base - low) / Math.max(1e-9, (high - low))) * 100;
+
+        document.getElementById(`${cfg.id}_low`).textContent = formatMoney(low);
+        document.getElementById(`${cfg.id}_sel`).textContent = formatMoney(selected);
+        document.getElementById(`${cfg.id}_high`).textContent = formatMoney(high);
+        document.getElementById(`${cfg.id}_sliderLabel`).textContent = `${Math.round(sliderPct * 100)}%`;
+        document.getElementById(`${cfg.id}_bar`).style.width = `${Math.max(0, Math.min(100, sliderPct * 100))}%`;
+        document.getElementById(`${cfg.id}_basePos`).textContent = `${Math.round(basePos)}%`;
+
+        grossLow += low;
+        grossHigh += high;
+        grossSelected += selected;
+        baseGross += base;
+      }
+
+      const overlapHaircut = pct(s.overlapHaircutPctInput);
+      const netSelected = grossSelected * (1 - overlapHaircut);
+      const baseNet = baseGross * (1 - overlapHaircut);
+
+      document.getElementById('grossSelected').textContent = formatMoney(grossSelected);
+      document.getElementById('grossLow').textContent = formatMoney(grossLow);
+      document.getElementById('grossHigh').textContent = formatMoney(grossHigh);
+      document.getElementById('netSelected').textContent = formatMoney(netSelected);
+      document.getElementById('annualSpend').textContent = formatMoney(spend);
+      document.getElementById('totalMembers').textContent = integer.format(totalMembers);
+      document.getElementById('maMembersSummary').textContent = integer.format(s.maMembers);
+      document.getElementById('overlapPct').textContent = formatPct(s.overlapHaircutPctInput);
+      document.getElementById('netPMPY').textContent = totalMembers > 0 ? formatMoney(netSelected / totalMembers) : '$0';
+      document.getElementById('baseGross').textContent = formatMoney(baseGross);
+      document.getElementById('baseNet').textContent = formatMoney(baseNet);
+    }
+
+    function setAllSliders(pctValue) {
+      for (const cfg of bucketConfigs) {
+        document.getElementById(`${cfg.id}_slider`).value = pctValue;
+      }
+      document.getElementById('masterDialValue').textContent = `${pctValue}%`;
+      document.getElementById('masterPctLabel').textContent = `${pctValue}%`;
+      recalc();
+    }
+
+    function wireEvents() {
+      for (const key of Object.keys(defaults)) {
+        document.getElementById(key).addEventListener('input', recalc);
+      }
+      for (const cfg of bucketConfigs) {
+        document.getElementById(`${cfg.id}_slider`).addEventListener('input', recalc);
+      }
+      document.getElementById('masterDial').addEventListener('input', e => {
+        setAllSliders(Number(e.target.value || 0));
+      });
+      document.getElementById('resetDefaults').addEventListener('click', () => {
+        applyDefaults();
+      });
+      document.getElementById('exportJson').addEventListener('click', () => {
+        const state = getState();
+        const sliderState = {};
+        for (const cfg of bucketConfigs) sliderState[cfg.id] = Number(document.getElementById(`${cfg.id}_slider`).value || 0);
+        const payload = {
+          assumptions: state,
+          bucketSliderPercents: sliderState,
+          exportedAt: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'digital-hedis-rom-scenario.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+      document.getElementById('downloadHtml').addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = window.location.href;
+        a.download = 'digital_hedis_rom_scenario_model_spa.html';
+        a.click();
+      });
+    }
+
+    function applyDefaults() {
+      for (const [key, value] of Object.entries(defaults)) {
+        document.getElementById(key).value = value;
+      }
+      const avgDefault = Math.round(bucketConfigs.reduce((acc, cfg) => acc + defaultSliderPercent(cfg), 0) / bucketConfigs.length);
+      document.getElementById('masterDial').value = avgDefault;
+      document.getElementById('masterDialValue').textContent = `${avgDefault}%`;
+      document.getElementById('masterPctLabel').textContent = `${avgDefault}%`;
+      for (const cfg of bucketConfigs) {
+        document.getElementById(`${cfg.id}_slider`).value = defaultSliderPercent(cfg);
+      }
+      recalc();
+    }
+
+    buildBucketCards();
+    wireEvents();
+    applyDefaults();
+  </script>
+</body>
+</html>
