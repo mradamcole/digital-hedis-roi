@@ -28,7 +28,7 @@
       line-height: 1.45;
     }
     .container {
-      width: min(1440px, calc(100% - 32px));
+      width: min(1440px, calc(100% - 16px));
       margin: 24px auto 48px;
     }
     .hero, .panel, .bucket-card, .summary-card, details {
@@ -55,7 +55,7 @@
     p, li, summary, label, .small { color: var(--muted); }
     .grid {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 530px 1fr;
       gap: 18px;
       align-items: start;
     }
@@ -101,6 +101,10 @@
       padding: 10px 12px;
       font-size: 14px;
     }
+    input.num-field {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
     input[type="range"] {
       width: 100%;
       accent-color: var(--accent);
@@ -126,7 +130,6 @@
       gap: 12px;
     }
     .summary-card {
-      container-type: inline-size;
       min-width: 0;
       padding: 14px;
       background: linear-gradient(180deg, rgba(124,196,255,0.08), rgba(255,255,255,0.01));
@@ -138,22 +141,33 @@
       letter-spacing: -0.02em;
     }
     .value.smallish { font-size: 22px; }
-    /* Sidebar cards are narrow (~2 per 380px column); scale figures to container so long currency fits */
-    .summary-card .value {
-      font-size: clamp(14px, 2.4vw, 18px);
-      font-size: clamp(11px, 7.5cqi, 18px);
-      line-height: 1.2;
-    }
+    /* Match .summary-metric strong (14px bold); glow distinguishes the headline figure */
+    .summary-card .value,
     .summary-card .value.smallish {
-      font-size: clamp(13px, 2.2vw, 17px);
-      font-size: clamp(10px, 7cqi, 17px);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+      color: #f5f8ff;
+      text-shadow:
+        0 0 8px rgba(124, 196, 255, 0.65),
+        0 0 20px rgba(124, 196, 255, 0.35),
+        0 0 36px rgba(142, 240, 194, 0.2);
     }
     .summary-metric {
       display: flex;
       justify-content: space-between;
+      align-items: baseline;
       gap: 12px;
       margin-top: 10px;
       font-size: 14px;
+    }
+    .summary-metric strong {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      min-width: 0;
     }
     .bar {
       position: relative;
@@ -402,14 +416,14 @@
             <summary>1) Membership mix and medical spend</summary>
             <div class="details-body subgrid">
               <div>
-                <div class="input-row inline"><label for="commercialMembers">Commercial / Exchange members</label><input id="commercialMembers" type="number" min="0" step="1000" /></div>
-                <div class="input-row inline"><label for="medicaidMembers">Medicaid members</label><input id="medicaidMembers" type="number" min="0" step="1000" /></div>
-                <div class="input-row inline"><label for="maMembers">Medicare Advantage members</label><input id="maMembers" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="commercialMembers">Commercial / Exchange members</label><input id="commercialMembers" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
+                <div class="input-row inline"><label for="medicaidMembers">Medicaid members</label><input id="medicaidMembers" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
+                <div class="input-row inline"><label for="maMembers">Medicare Advantage members</label><input id="maMembers" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
               </div>
               <div>
-                <div class="input-row inline"><label for="commercialPMPM">Commercial / Exchange medical PMPM ($)</label><input id="commercialPMPM" type="number" min="0" step="1" /></div>
-                <div class="input-row inline"><label for="medicaidPMPM">Medicaid medical PMPM ($)</label><input id="medicaidPMPM" type="number" min="0" step="1" /></div>
-                <div class="input-row inline"><label for="maPMPM">Medicare Advantage medical PMPM ($)</label><input id="maPMPM" type="number" min="0" step="1" /></div>
+                <div class="input-row inline"><label for="commercialPMPM">Commercial / Exchange medical PMPM ($)</label><input id="commercialPMPM" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1" /></div>
+                <div class="input-row inline"><label for="medicaidPMPM">Medicaid medical PMPM ($)</label><input id="medicaidPMPM" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1" /></div>
+                <div class="input-row inline"><label for="maPMPM">Medicare Advantage medical PMPM ($)</label><input id="maPMPM" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1" /></div>
               </div>
             </div>
           </details>
@@ -418,12 +432,12 @@
             <summary>2) HEDIS operating baseline and reporting-cost takeout assumptions</summary>
             <div class="details-body subgrid">
               <div>
-                <div class="input-row inline"><label for="chartChaseSpend">Outsourced chart chase / abstraction spend ($)</label><input id="chartChaseSpend" type="number" min="0" step="50000" /></div>
-                <div class="input-row inline"><label for="internalHedisOpsSpend">Internal HEDIS ops / QA / reconciliation spend ($)</label><input id="internalHedisOpsSpend" type="number" min="0" step="50000" /></div>
-                <div class="input-row inline"><label for="vendorAuditSpend">Vendor / audit / submission support spend ($)</label><input id="vendorAuditSpend" type="number" min="0" step="50000" /></div>
+                <div class="input-row inline"><label for="chartChaseSpend">Outsourced chart chase / abstraction spend ($)</label><input id="chartChaseSpend" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="50000" /></div>
+                <div class="input-row inline"><label for="internalHedisOpsSpend">Internal HEDIS ops / QA / reconciliation spend ($)</label><input id="internalHedisOpsSpend" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="50000" /></div>
+                <div class="input-row inline"><label for="vendorAuditSpend">Vendor / audit / submission support spend ($)</label><input id="vendorAuditSpend" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="50000" /></div>
               </div>
               <div>
-                <div class="input-row inline"><label for="hedisOpsReductionPct">Reducible share of HEDIS operating spend (%)</label><input id="hedisOpsReductionPct" type="number" min="0" max="100" step="1" /></div>
+                <div class="input-row inline"><label for="hedisOpsReductionPct">Reducible share of HEDIS operating spend (%)</label><input id="hedisOpsReductionPct" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="1" /></div>
                 <p class="tiny">The base reporting-cost takeout bucket equals the three spend lines above multiplied by the reducible share.</p>
               </div>
             </div>
@@ -433,14 +447,14 @@
             <summary>3) Quality program economics and Stars sensitivity</summary>
             <div class="details-body subgrid">
               <div>
-                <div class="input-row inline"><label for="nonMAQualityMembers">Members tied to non-MA quality economics</label><input id="nonMAQualityMembers" type="number" min="0" step="1000" /></div>
-                <div class="input-row inline"><label for="nonMAQualityPMPY">Average non-MA quality economics ($ PMPY)</label><input id="nonMAQualityPMPY" type="number" min="0" step="1" /></div>
-                <div class="input-row inline"><label for="captureRecoveryPct">Recovered value from better capture / fuller measurement (%)</label><input id="captureRecoveryPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="nonMAQualityMembers">Members tied to non-MA quality economics</label><input id="nonMAQualityMembers" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
+                <div class="input-row inline"><label for="nonMAQualityPMPY">Average non-MA quality economics ($ PMPY)</label><input id="nonMAQualityPMPY" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1" /></div>
+                <div class="input-row inline"><label for="captureRecoveryPct">Recovered value from better capture / fuller measurement (%)</label><input id="captureRecoveryPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
               </div>
               <div>
-                <div class="input-row inline"><label for="starBonusPerMember">MA Stars bonus economics ($ per MA member / year)</label><input id="starBonusPerMember" type="number" min="0" step="1" /></div>
-                <div class="input-row inline"><label for="starAttributionPct">Digital HEDIS attribution to Stars value (%)</label><input id="starAttributionPct" type="number" min="0" max="100" step="0.1" /></div>
-                <div class="input-row inline"><label for="starSensitivityPct">MA Stars sensitivity / threshold capture factor (%)</label><input id="starSensitivityPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="starBonusPerMember">MA Stars bonus economics ($ per MA member / year)</label><input id="starBonusPerMember" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1" /></div>
+                <div class="input-row inline"><label for="starAttributionPct">Digital HEDIS attribution to Stars value (%)</label><input id="starAttributionPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
+                <div class="input-row inline"><label for="starSensitivityPct">MA Stars sensitivity / threshold capture factor (%)</label><input id="starSensitivityPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
               </div>
             </div>
           </details>
@@ -449,18 +463,18 @@
             <summary>4) In-year gap closure, outreach, and provider-abrasion assumptions</summary>
             <div class="details-body subgrid">
               <div>
-                <div class="input-row inline"><label for="providerQualityFTE">Provider-facing quality / network ops FTE</label><input id="providerQualityFTE" type="number" min="0" step="0.5" /></div>
-                <div class="input-row inline"><label for="providerFTECost">Loaded cost per provider-facing FTE ($)</label><input id="providerFTECost" type="number" min="0" step="1000" /></div>
-                <div class="input-row inline"><label for="providerEffortReduciblePct">Reducible provider-facing effort (%)</label><input id="providerEffortReduciblePct" type="number" min="0" max="100" step="0.1" /></div>
-                <div class="input-row inline"><label for="providerOtherSavings">Other provider-data / remediation savings ($)</label><input id="providerOtherSavings" type="number" min="0" step="50000" /></div>
+                <div class="input-row inline"><label for="providerQualityFTE">Provider-facing quality / network ops FTE</label><input id="providerQualityFTE" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-step="0.5" /></div>
+                <div class="input-row inline"><label for="providerFTECost">Loaded cost per provider-facing FTE ($)</label><input id="providerFTECost" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
+                <div class="input-row inline"><label for="providerEffortReduciblePct">Reducible provider-facing effort (%)</label><input id="providerEffortReduciblePct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
+                <div class="input-row inline"><label for="providerOtherSavings">Other provider-data / remediation savings ($)</label><input id="providerOtherSavings" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="50000" /></div>
               </div>
               <div>
-                <div class="input-row inline"><label for="gapClosureMembers">Members in in-year gap-closure programs</label><input id="gapClosureMembers" type="number" min="0" step="1000" /></div>
-                <div class="input-row inline"><label for="gapClosurePMPY">Average in-year quality upside ($ PMPY)</label><input id="gapClosurePMPY" type="number" min="0" step="1" /></div>
-                <div class="input-row inline"><label for="earlierActionRealizationPct">Incremental realization from earlier action (%)</label><input id="earlierActionRealizationPct" type="number" min="0" max="100" step="0.1" /></div>
-                <div class="input-row inline"><label for="outreachEvents">Annual outreach attempts</label><input id="outreachEvents" type="number" min="0" step="1000" /></div>
-                <div class="input-row inline"><label for="outreachCost">Average cost per outreach attempt ($)</label><input id="outreachCost" type="number" min="0" step="0.1" /></div>
-                <div class="input-row inline"><label for="wastedOutreachReductionPct">Reduction in wasted outreach (%)</label><input id="wastedOutreachReductionPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="gapClosureMembers">Members in in-year gap-closure programs</label><input id="gapClosureMembers" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
+                <div class="input-row inline"><label for="gapClosurePMPY">Average in-year quality upside ($ PMPY)</label><input id="gapClosurePMPY" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1" /></div>
+                <div class="input-row inline"><label for="earlierActionRealizationPct">Incremental realization from earlier action (%)</label><input id="earlierActionRealizationPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
+                <div class="input-row inline"><label for="outreachEvents">Annual outreach attempts</label><input id="outreachEvents" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
+                <div class="input-row inline"><label for="outreachCost">Average cost per outreach attempt ($)</label><input id="outreachCost" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-step="0.1" /></div>
+                <div class="input-row inline"><label for="wastedOutreachReductionPct">Reduction in wasted outreach (%)</label><input id="wastedOutreachReductionPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
               </div>
             </div>
           </details>
@@ -469,15 +483,15 @@
             <summary>5) Reuse, VBC operations, and settlement friction assumptions</summary>
             <div class="details-body subgrid">
               <div>
-                <div class="input-row inline"><label for="overlapToolSpend">Avoidable overlapping point-solution / tool spend ($)</label><input id="overlapToolSpend" type="number" min="0" step="50000" /></div>
-                <div class="input-row inline"><label for="duplicateAnalystFTE">Duplicate analyst FTE avoided</label><input id="duplicateAnalystFTE" type="number" min="0" step="0.5" /></div>
-                <div class="input-row inline"><label for="analystFTECost">Loaded cost per analyst FTE ($)</label><input id="analystFTECost" type="number" min="0" step="1000" /></div>
+                <div class="input-row inline"><label for="overlapToolSpend">Avoidable overlapping point-solution / tool spend ($)</label><input id="overlapToolSpend" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="50000" /></div>
+                <div class="input-row inline"><label for="duplicateAnalystFTE">Duplicate analyst FTE avoided</label><input id="duplicateAnalystFTE" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-step="0.5" /></div>
+                <div class="input-row inline"><label for="analystFTECost">Loaded cost per analyst FTE ($)</label><input id="analystFTECost" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
               </div>
               <div>
-                <div class="input-row inline"><label for="vbcOpsFTE">VBC / contract / quality operations FTE</label><input id="vbcOpsFTE" type="number" min="0" step="0.5" /></div>
-                <div class="input-row inline"><label for="vbcFTECost">Loaded cost per VBC ops FTE ($)</label><input id="vbcFTECost" type="number" min="0" step="1000" /></div>
-                <div class="input-row inline"><label for="vbcEffortReduciblePct">Reducible VBC ops effort (%)</label><input id="vbcEffortReduciblePct" type="number" min="0" max="100" step="0.1" /></div>
-                <div class="input-row inline"><label for="settlementLeakageSavings">Reduced settlement leakage / dispute / retro adjustment cost ($)</label><input id="settlementLeakageSavings" type="number" min="0" step="50000" /></div>
+                <div class="input-row inline"><label for="vbcOpsFTE">VBC / contract / quality operations FTE</label><input id="vbcOpsFTE" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-step="0.5" /></div>
+                <div class="input-row inline"><label for="vbcFTECost">Loaded cost per VBC ops FTE ($)</label><input id="vbcFTECost" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="1000" /></div>
+                <div class="input-row inline"><label for="vbcEffortReduciblePct">Reducible VBC ops effort (%)</label><input id="vbcEffortReduciblePct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
+                <div class="input-row inline"><label for="settlementLeakageSavings">Reduced settlement leakage / dispute / retro adjustment cost ($)</label><input id="settlementLeakageSavings" type="text" inputmode="numeric" class="num-field" autocomplete="off" data-min="0" data-step="50000" /></div>
               </div>
             </div>
           </details>
@@ -486,12 +500,12 @@
             <summary>6) Medical-cost savings decomposition and overlap haircut</summary>
             <div class="details-body subgrid">
               <div>
-                <div class="input-row inline"><label for="utilizationTrendPct">Annual medical trend under management (%)</label><input id="utilizationTrendPct" type="number" min="0" max="100" step="0.1" /></div>
-                <div class="input-row inline"><label for="addressableSpendPct">Share of spend where targeted quality action can matter (%)</label><input id="addressableSpendPct" type="number" min="0" max="100" step="0.1" /></div>
-                <div class="input-row inline"><label for="relativeReductionPct">Relative reduction on that addressable spend (%)</label><input id="relativeReductionPct" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="utilizationTrendPct">Annual medical trend under management (%)</label><input id="utilizationTrendPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
+                <div class="input-row inline"><label for="addressableSpendPct">Share of spend where targeted quality action can matter (%)</label><input id="addressableSpendPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
+                <div class="input-row inline"><label for="relativeReductionPct">Relative reduction on that addressable spend (%)</label><input id="relativeReductionPct" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
               </div>
               <div>
-                <div class="input-row inline"><label for="overlapHaircutPctInput">Overlap haircut on gross total (%)</label><input id="overlapHaircutPctInput" type="number" min="0" max="100" step="0.1" /></div>
+                <div class="input-row inline"><label for="overlapHaircutPctInput">Overlap haircut on gross total (%)</label><input id="overlapHaircutPctInput" type="text" inputmode="decimal" class="num-field" autocomplete="off" data-min="0" data-max="100" data-step="0.1" /></div>
                 <p class="tiny">Bucket 8 uses: annual medical spend × utilization trend × addressable share × relative reduction. The overlap haircut is then applied to the total gross selected ROM.</p>
               </div>
             </div>
@@ -671,7 +685,41 @@
     ];
 
     function pct(n) { return Number(n || 0) / 100; }
-    function num(id) { return Number(document.getElementById(id).value || 0); }
+
+    function stepDecimals(step) {
+      const s = String(step ?? '1');
+      const dot = s.indexOf('.');
+      if (dot === -1) return 0;
+      return Math.min(10, s.length - dot - 1);
+    }
+
+    function parseNumInput(raw) {
+      const s = String(raw ?? '').replace(/,/g, '').trim();
+      if (s === '' || s === '-' || s === '.' || s === '-.') return 0;
+      const n = Number(s);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatNumFieldDisplay(n, maxFrac) {
+      if (!Number.isFinite(n)) n = 0;
+      const f = Math.max(0, Math.min(10, maxFrac | 0));
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: f
+      }).format(n);
+    }
+
+    function readClampFormatAssumption(el) {
+      let v = parseNumInput(el.value);
+      const min = el.dataset.min !== undefined ? Number(el.dataset.min) : NaN;
+      const max = el.dataset.max !== undefined ? Number(el.dataset.max) : NaN;
+      if (Number.isFinite(min)) v = Math.max(min, v);
+      if (Number.isFinite(max)) v = Math.min(max, v);
+      el.value = formatNumFieldDisplay(v, stepDecimals(el.dataset.step));
+      return v;
+    }
+
+    function num(id) { return parseNumInput(document.getElementById(id).value); }
     function annualMedicalSpend(s) {
       return (s.commercialMembers * s.commercialPMPM * 12) +
              (s.medicaidMembers * s.medicaidPMPM * 12) +
@@ -792,7 +840,15 @@
 
     function wireEvents() {
       for (const key of Object.keys(defaults)) {
-        document.getElementById(key).addEventListener('input', recalc);
+        const el = document.getElementById(key);
+        el.addEventListener('input', recalc);
+        el.addEventListener('focus', () => {
+          el.value = String(el.value).replace(/,/g, '');
+        });
+        el.addEventListener('blur', () => {
+          readClampFormatAssumption(el);
+          recalc();
+        });
       }
       for (const cfg of bucketConfigs) {
         document.getElementById(`${cfg.id}_slider`).addEventListener('input', recalc);
@@ -830,7 +886,8 @@
 
     function applyDefaults() {
       for (const [key, value] of Object.entries(defaults)) {
-        document.getElementById(key).value = value;
+        const el = document.getElementById(key);
+        el.value = formatNumFieldDisplay(value, stepDecimals(el.dataset.step));
       }
       const avgDefault = Math.round(bucketConfigs.reduce((acc, cfg) => acc + defaultSliderPercent(cfg), 0) / bucketConfigs.length);
       document.getElementById('masterDial').value = avgDefault;
